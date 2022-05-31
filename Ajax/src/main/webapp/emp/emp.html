@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>emp 화면</title>
+</head>
+
+<body>
+  <form name="frm" action="../ajax.do" method="post"> <!-- "ajax.do" 이렇게하면 경로가 안맞으니 ../를 넣어준다 -->
+    fist_name : <input type="text" name="fname"><br> <!-- name은 파라메타이다 넘길때 사용함 -->
+    last_name : <input type="text" name="lname"><br>
+    email : <input type="email" name="email"><br>
+    hire_date : <input type="date" name="hdate"><br>
+    job_id : <input type="text" name="job" value="IT_PROG"><br>
+    <input type="hidden" name="cmd" value="insert">
+    <input type="hidden" name="empId">
+    <input type="submit" value="저장">
+    <input type="reset" value="취소">
+    <input type="button" value="수정" id="modify">
+  </form>
+
+  <h3>사원리스트</h3>
+  <div id="show">
+ 	 <table border="1">
+  		<thead>
+  			<tr><th>사원번호</th><th>이름</th><th>성</th><th>이메일</th><th>입사일자</th><th>직무</th></tr>	
+  		</thead>
+  		<tbody id="list">
+  		
+  		
+  		</tbody>  		
+  	</table>
+  </div>
+  
+  <script>
+ let myform = document.forms.frm;
+  //위에 button 아이디값이 modify임
+  document.getElementById('modify').addEventListener('click', function(){
+	  myform.cmd.value = 'update';
+	  
+	  let fname = myform.fname.value;
+	  let lname = myform.lname.value;
+	  let email = myform.email.value;
+	  let job = myform.job.value;
+	  let hdate = myform.hdate.value;
+	  let cmd = myform.cmd.value;
+	  
+	  let param = `cmd=${cmd}&fname=${fname}&lname=${lname}&email=${email}&job=${job}&hdate=${hdate}`; //
+	  let xhtp = new XMLHttpRequest();
+	  xhtp.open('POST', '../ajax.do');
+	  xhtp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded'); // ?key=val&key1 = val1
+	  xhtp.send(param);
+	  xhtp.onload = function(){
+		  console.log(xhtp.responseText);
+	  }
+  });
+  
+  
+  
+ //submit:저장
+ myform.onsubmit = function(e) {
+	  e.preventDefault();
+	  let fname = myform.fname.value;
+	  let lname = myform.lname.value;
+	  let email = myform.email.value;
+	  let job = myform.job.value;
+	  let hdate = myform.hdate.value;
+	  let cmd = myform.cmd.value;
+	  
+	  let param = `cmd=${cmd}&fname=${fname}&lname=${lname}&email=${email}&job=${job}&hdate=${hdate}`; //
+	  let xhtp = new XMLHttpRequest();
+	  xhtp.open('POST', '../ajax.do');
+	  xhtp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded'); // ?key=val&key1 = val1
+	  xhtp.send(param);
+	  xhtp.onload = function(){
+		  let data = JSON.parse(xhtp.responseText);
+		  document.getElementById('list').append(makeTr(data));
+	  }
+ }
+  
+  	
+ 
+ 	//리스트 출력
+  	let xhtp = new XMLHttpRequest();
+  	xhtp.open('GET', '../ajax.do?job=json'); // 두번째는 요청하는 페이지 입력, Ajax/emp/emp.html
+  											//../ 를 붙여야한다 위치관련이라고 헀는데 기억이 잘 안남
+	xhtp.send();
+  	xhtp.onload = function() {
+  		console.log(xhtp.responseText); //콘솔창안에 있는걸 파싱한다
+  		let data = JSON.parse(xhtp.responseText); //[{사원번호}, {이름}, {성}, {이메일}, {입사일자}, {직무}]
+		let list = document.getElementById('list');
+  		for(let i=0; i<data.length; i++){
+			list.append(makeTr(data[i])); // data[i] = 리스트에 makeTr이 가져다주는 값을 쓰겠습니다
+  		console.log(data[i]);
+		}
+  	}
+  	
+  	
+  	//데이터 한건 입력 또는 조회
+  	let fields = ['employeeId','firstName', 'lastName', 'email', 'hireDate', 'jobId'];
+  	function makeTr(emp){
+  		let tr = document.createElement('tr');
+  		tr.addEventListener('click', trClick); // callback
+  		fields.forEach(field => {
+  			let td = document.createElement('td');
+  			td.innerText = emp[field]; //오브젝트가 가지고 있는 필드의 값을 넣어줌 emp[field]  				
+  			tr.append(td);	
+  		});
+  		return tr;
+  	}
+  	
+  	function trClick(){
+  		// tr클릭 -> this:tr
+  		console.log(this.children[0].innerText);
+        myform.empId.value = this.children[0].innerHTML;
+        myform.fname.value = this.children[1].innerHTML;
+        myform.lname.value = this.children[2].innerHTML;
+        myform.email.value = this.children[3].innerHTML;
+        myform.hdate.value = this.children[4].innerHTML.substring(0,10);
+        myform.job.value = this.children[5].innerHTML;
+  	}
+  	
+  </script>
+</body>
+
+</html>
